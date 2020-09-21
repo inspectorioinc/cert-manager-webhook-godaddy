@@ -4,15 +4,13 @@
 ## Installation
 
 ```bash
-$ helm install --name godaddy-webhook --namespace cert-manager ./deploy/godaddy-webhook
+$ helm install godaddy-webhook --namespace cert-manager ./deploy/godaddy-webhook --set groupName=acme.mycompany.com
 ```
-
-## Issuer
 
 ### ClusterIssuer
 
 ```yaml
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
@@ -37,24 +35,9 @@ spec:
           solverName: godaddy
 ```
 
-Certificate
+Note: Change the groupName as set during helm chart installation.
 
-```yaml
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: wildcard-example-com
-spec:
-  secretName: wildcard-example-com-tls
-  renewBefore: 240h
-  dnsNames:
-  - '*.example.com'
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-```
-
-Ingress
+### Ingress
 
 ```yaml
 apiVersion: extensions/v1beta1
@@ -63,7 +46,7 @@ metadata:
   name: example-ingress
   namespace: default
   annotations:
-    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   tls:
   - hosts:
@@ -78,6 +61,25 @@ spec:
           serviceName: backend-service
           servicePort: 80
 ```
+
+### Certificate
+
+```yaml
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: wildcard-example-com
+spec:
+  secretName: wildcard-example-com-tls
+  renewBefore: 240h
+  dnsNames:
+  - '*.example.com'
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+```
+
+Note: Use annotations in Ingress to automate certificate creation.
 
 ## Development
 
